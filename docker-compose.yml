@@ -1,0 +1,25 @@
+services:
+  web:
+    image: nginx:stable
+    container_name: daw-web
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./www:/usr/share/nginx/html:ro
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs/webpff.crt:/etc/ssl/certs/webpff.crt:ro
+      - ./certs/webpff.key:/etc/ssl/private/webpff.key:ro
+    depends_on:
+      - sftp
+    restart: unless-stopped
+
+  sftp:
+    image: atmoz/sftp:latest
+    container_name: daw-sftp
+    ports:
+      - "2222:22"
+    command: "${SFTP_USER:-daw}:${SFTP_PASS:-daw}:1000:1000"
+    volumes:
+      - ./www:/home/${SFTP_USER:-daw}/upload
+    restart: unless-stopped
